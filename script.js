@@ -25,11 +25,15 @@ const gyroStatusEl = document.getElementById('gyroStatus');
 const syncStatusEl = document.getElementById('syncStatus');
 
 function updateStatus(text) {
-  statusEl.textContent = text;
+  if (statusEl) {
+    statusEl.textContent = text;
+  }
 }
 
 function updateGyroStatus(text) {
-  gyroStatusEl.textContent = text;
+  if (gyroStatusEl) {
+    gyroStatusEl.textContent = text;
+  }
 }
 
 function updateSyncStatus(text) {
@@ -51,7 +55,7 @@ function initFirebase() {
 
   const firebaseConfig = {
     apiKey: 'AIzaSyC4fgeIfoIcf-jo6tJfLdQfAIN7QIdzzis',
-    authDomain: 'compteurdepas.firebaseapp.com', // Fixe et identique partout !
+    authDomain: 'compteurdepas.firebaseapp.com',
     projectId: 'compteurdepas',
     storageBucket: 'compteurdepas.firebasestorage.app',
     messagingSenderId: '904521867297',
@@ -59,16 +63,14 @@ function initFirebase() {
   };
 
   try {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-    // ... reste du code identique
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
 
-
-  try {
-    firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
     auth = firebase.auth();
     updateSyncStatus('Connexion Firebase…');
+
     auth.onAuthStateChanged((user) => {
       currentUser = user;
       if (user) {
@@ -104,11 +106,15 @@ async function loadUserSteps() {
     const snapshot = await db.collection('users').doc(userId).get();
     if (snapshot.exists) {
       stepCount = Number(snapshot.data().steps) || 0;
-      stepCountEl.textContent = stepCount;
+      if (stepCountEl) {
+        stepCountEl.textContent = stepCount;
+      }
       updateSyncStatus('Compteur chargé');
     } else {
       stepCount = 0;
-      stepCountEl.textContent = stepCount;
+      if (stepCountEl) {
+        stepCountEl.textContent = stepCount;
+      }
       updateSyncStatus('Compteur prêt');
     }
   } catch (error) {
@@ -148,26 +154,26 @@ function updateMetrics(acceleration, rotation) {
   const accMagnitude = getMagnitude(accX, accY, accZ);
   const gyroMagnitude = getMagnitude(gyroX, gyroY, gyroZ);
 
-  accXEl.textContent = accX.toFixed(2);
-  accYEl.textContent = accY.toFixed(2);
-  accZEl.textContent = accZ.toFixed(2);
+  if (accXEl) accXEl.textContent = accX.toFixed(2);
+  if (accYEl) accYEl.textContent = accY.toFixed(2);
+  if (accZEl) accZEl.textContent = accZ.toFixed(2);
 
   if (gyroMagnitude > 0.0001) {
     gyroAvailable = true;
     updateGyroStatus('rotation-rate OK');
-    gyroXEl.textContent = gyroX.toFixed(2);
-    gyroYEl.textContent = gyroY.toFixed(2);
-    gyroZEl.textContent = gyroZ.toFixed(2);
+    if (gyroXEl) gyroXEl.textContent = gyroX.toFixed(2);
+    if (gyroYEl) gyroYEl.textContent = gyroY.toFixed(2);
+    if (gyroZEl) gyroZEl.textContent = gyroZ.toFixed(2);
   } else if (orientationAvailable) {
     updateGyroStatus('orientation OK');
-    gyroXEl.textContent = gyroX.toFixed(2);
-    gyroYEl.textContent = gyroY.toFixed(2);
-    gyroZEl.textContent = gyroZ.toFixed(2);
+    if (gyroXEl) gyroXEl.textContent = gyroX.toFixed(2);
+    if (gyroYEl) gyroYEl.textContent = gyroY.toFixed(2);
+    if (gyroZEl) gyroZEl.textContent = gyroZ.toFixed(2);
   } else {
     updateGyroStatus('indisponible');
-    gyroXEl.textContent = '0';
-    gyroYEl.textContent = '0';
-    gyroZEl.textContent = '0';
+    if (gyroXEl) gyroXEl.textContent = '0';
+    if (gyroYEl) gyroYEl.textContent = '0';
+    if (gyroZEl) gyroZEl.textContent = '0';
   }
 
   if (!isActive) return;
@@ -181,7 +187,9 @@ function updateMetrics(acceleration, rotation) {
   if (hasStrongPeak && hasLowRotation && isCooldownOk) {
     stepCount += 1;
     lastStepTime = now;
-    stepCountEl.textContent = stepCount;
+    if (stepCountEl) {
+      stepCountEl.textContent = stepCount;
+    }
     updateStatus('Pas détecté');
     saveStepCount();
   } else {
@@ -204,9 +212,9 @@ function handleOrientation(event) {
   const gyroY = Number(event.gamma) || 0;
   const gyroZ = Number(event.alpha) || 0;
   updateGyroStatus('orientation OK');
-  gyroXEl.textContent = gyroX.toFixed(2);
-  gyroYEl.textContent = gyroY.toFixed(2);
-  gyroZEl.textContent = gyroZ.toFixed(2);
+  if (gyroXEl) gyroXEl.textContent = gyroX.toFixed(2);
+  if (gyroYEl) gyroYEl.textContent = gyroY.toFixed(2);
+  if (gyroZEl) gyroZEl.textContent = gyroZ.toFixed(2);
 }
 
 function startListening() {
@@ -226,7 +234,7 @@ function startListening() {
       window.addEventListener('deviceorientation', handleOrientation, { passive: true });
     }
     isActive = true;
-    toggleBtn.textContent = 'Arrêter';
+    if (toggleBtn) toggleBtn.textContent = 'Arrêter';
     updateStatus('Détection en cours');
   };
 
@@ -251,13 +259,16 @@ function stopListening() {
   window.removeEventListener('devicemotion', handleMotion);
   window.removeEventListener('deviceorientation', handleOrientation);
   isActive = false;
-  toggleBtn.textContent = 'Démarrer';
+  if (toggleBtn) toggleBtn.textContent = 'Démarrer';
   updateStatus('Arrêté');
   saveStepCount();
 }
 
 async function signInWithGoogle() {
-  if (!auth) return;
+  if (!auth) {
+    updateSyncStatus('Firebase non initialisé');
+    return;
+  }
 
   if (window.location.protocol === 'file:') {
     updateSyncStatus('Ouvre l’app via http://localhost:8000 ou une adresse IP');
