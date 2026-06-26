@@ -39,6 +39,16 @@ function updateSyncStatus(text) {
 }
 
 function initFirebase() {
+  if (window.location.protocol === 'file:') {
+    updateSyncStatus('Ouvre l’app via un serveur local (http://localhost:8000 ou http://IP:8000)');
+    return;
+  }
+
+  if (typeof window.firebase === 'undefined') {
+    updateSyncStatus('Chargement Firebase impossible');
+    return;
+  }
+
   const firebaseConfig = {
     apiKey: 'AIzaSyC4fgeIfoIcf-jo6tJfLdQfAIN7QIdzzis',
     authDomain: 'compteurdepas.firebaseapp.com',
@@ -242,6 +252,11 @@ function stopListening() {
 
 async function signInWithGoogle() {
   if (!auth) return;
+
+  if (window.location.protocol === 'file:') {
+    updateSyncStatus('Ouvre l’app via http://localhost:8000 ou une adresse IP');
+    return;
+  }
 
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
