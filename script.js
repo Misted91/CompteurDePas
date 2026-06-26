@@ -49,10 +49,9 @@ function initFirebase() {
     return;
   }
 
-  const host = window.location.hostname || 'compteurdepas.firebaseapp.com';
   const firebaseConfig = {
     apiKey: 'AIzaSyC4fgeIfoIcf-jo6tJfLdQfAIN7QIdzzis',
-    authDomain: host === 'localhost' ? 'compteurdepas.firebaseapp.com' : host,
+    authDomain: 'compteurdepas.firebaseapp.com',
     projectId: 'compteurdepas',
     storageBucket: 'compteurdepas.firebasestorage.app',
     messagingSenderId: '904521867297',
