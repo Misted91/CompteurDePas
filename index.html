@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Détection de pas</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <h1>Détection de pas</h1>
+      <p class="subtitle">Utilise l’accéléromètre et le gyroscope du téléphone.</p>
+
+      <button id="toggleBtn">Démarrer</button>
+
+      <section class="card">
+        <div class="metric">
+          <span class="label">Pas détectés</span>
+          <span id="stepCount" class="value">0</span>
+        </div>
+        <div class="metric">
+          <span class="label">État</span>
+          <span id="status" class="value">En attente</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Accéléromètre</h2>
+        <div class="values">
+          <div>X: <span id="accX">0</span></div>
+          <div>Y: <span id="accY">0</span></div>
+          <div>Z: <span id="accZ">0</span></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Gyroscope</h2>
+        <div class="values">
+          <div>Alpha: <span id="gyroX">0</span></div>
+          <div>Beta: <span id="gyroY">0</span></div>
+          <div>Gamma: <span id="gyroZ">0</span></div>
+          <div>État: <span id="gyroStatus">en attente</span></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
