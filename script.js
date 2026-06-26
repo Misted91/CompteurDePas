@@ -6,8 +6,13 @@ let stepCooldown = 350;
 let motionSupported = false;
 let gyroAvailable = false;
 let orientationAvailable = false;
+let db = null;
+let auth = null;
+let userId = null;
+let currentUser = null;
 
 const toggleBtn = document.getElementById('toggleBtn');
+const authBtn = document.getElementById('authBtn');
 const statusEl = document.getElementById('status');
 const stepCountEl = document.getElementById('stepCount');
 const accXEl = document.getElementById('accX');
@@ -17,6 +22,7 @@ const gyroXEl = document.getElementById('gyroX');
 const gyroYEl = document.getElementById('gyroY');
 const gyroZEl = document.getElementById('gyroZ');
 const gyroStatusEl = document.getElementById('gyroStatus');
+const syncStatusEl = document.getElementById('syncStatus');
 
 function updateStatus(text) {
   statusEl.textContent = text;
@@ -24,6 +30,91 @@ function updateStatus(text) {
 
 function updateGyroStatus(text) {
   gyroStatusEl.textContent = text;
+}
+
+function updateSyncStatus(text) {
+  if (syncStatusEl) {
+    syncStatusEl.textContent = text;
+  }
+}
+
+function initFirebase() {
+  const firebaseConfig = {
+    apiKey: 'AIzaSyC4fgeIfoIcf-jo6tJfLdQfAIN7QIdzzis',
+    authDomain: 'compteurdepas.firebaseapp.com',
+    projectId: 'compteurdepas',
+    storageBucket: 'compteurdepas.firebasestorage.app',
+    messagingSenderId: '904521867297',
+    appId: '1:904521867297:web:d3fd5626bdafa4d8bb0360'
+  };
+
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    auth = firebase.auth();
+    updateSyncStatus('Connexion Firebase…');
+    auth.onAuthStateChanged((user) => {
+      currentUser = user;
+      if (user) {
+        userId = user.uid;
+        updateAuthButton();
+        loadUserSteps();
+      } else {
+        userId = null;
+        updateAuthButton();
+        updateSyncStatus('Connecte-toi avec Google');
+      }
+    });
+  } catch (error) {
+    console.error('Erreur d\'initialisation Firebase :', error);
+    updateSyncStatus('Firebase non disponible');
+  }
+}
+
+function updateAuthButton() {
+  if (!authBtn) return;
+
+  if (currentUser) {
+    authBtn.textContent = `Déconnexion (${currentUser.displayName || currentUser.email || 'compte'})`;
+  } else {
+    authBtn.textContent = 'Se connecter avec Google';
+  }
+}
+
+async function loadUserSteps() {
+  if (!db || !userId) return;
+
+  try {
+    const snapshot = await db.collection('users').doc(userId).get();
+    if (snapshot.exists) {
+      stepCount = Number(snapshot.data().steps) || 0;
+      stepCountEl.textContent = stepCount;
+      updateSyncStatus('Compteur chargé');
+    } else {
+      stepCount = 0;
+      stepCountEl.textContent = stepCount;
+      updateSyncStatus('Compteur prêt');
+    }
+  } catch (error) {
+    console.error('Erreur de lecture Firebase :', error);
+    updateSyncStatus('Chargement impossible');
+  }
+}
+
+async function saveStepCount() {
+  if (!db || !userId) return;
+
+  try {
+    await db.collection('users').doc(userId).set({
+      steps: stepCount,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    updateSyncStatus('Pas enregistrés');
+  } catch (error) {
+    console.error('Erreur d\'enregistrement Firebase :', error);
+    updateSyncStatus('Échec d’enregistrement');
+  }
 }
 
 function getMagnitude(x, y, z) {
@@ -76,6 +167,7 @@ function updateMetrics(acceleration, rotation) {
     lastStepTime = now;
     stepCountEl.textContent = stepCount;
     updateStatus('Pas détecté');
+    saveStepCount();
   } else {
     updateStatus('À l’écoute');
   }
@@ -145,9 +237,39 @@ function stopListening() {
   isActive = false;
   toggleBtn.textContent = 'Démarrer';
   updateStatus('Arrêté');
+  saveStepCount();
+}
+
+async function signInWithGoogle() {
+  if (!auth) return;
+
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try {
+    await auth.signInWithPopup(provider);
+    updateSyncStatus('Connexion Google réussie');
+  } catch (error) {
+    console.error('Erreur de connexion Google :', error);
+    updateSyncStatus('Connexion Google annulée ou impossible');
+  }
+}
+
+async function signOut() {
+  if (!auth) return;
+
+  try {
+    await auth.signOut();
+    updateSyncStatus('Déconnecté');
+  } catch (error) {
+    console.error('Erreur de déconnexion :', error);
+  }
 }
 
 toggleBtn.addEventListener('click', () => {
+  if (!currentUser) {
+    updateStatus('Connecte-toi d’abord');
+    return;
+  }
+
   if (isActive) {
     stopListening();
   } else {
@@ -155,7 +277,17 @@ toggleBtn.addEventListener('click', () => {
   }
 });
 
+authBtn.addEventListener('click', async () => {
+  if (currentUser) {
+    await signOut();
+  } else {
+    await signInWithGoogle();
+  }
+});
+
 window.addEventListener('load', () => {
+  initFirebase();
+
   if (typeof window.DeviceMotionEvent !== 'undefined') {
     updateGyroStatus('capteur motion présent');
   } else if (typeof window.DeviceOrientationEvent !== 'undefined') {

@@ -37,6 +37,12 @@ h1 {
   color: #cbd5e1;
 }
 
+.sync-status {
+  margin: 0 0 16px;
+  color: #93c5fd;
+  font-size: 0.95rem;
+}
+
 button {
   width: 100%;
   border: none;
@@ -47,6 +53,11 @@ button {
   background: #22c55e;
   color: white;
   cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.secondary-btn {
+  background: #2563eb;
 }
 
 button:active {

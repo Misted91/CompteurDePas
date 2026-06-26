@@ -10,7 +10,8 @@
     <main class="app">
       <h1>Détection de pas</h1>
       <p class="subtitle">Utilise l’accéléromètre et le gyroscope du téléphone.</p>
-
+      <p id="syncStatus" class="sync-status">Initialisation…</p>
+      <button id="authBtn" class="secondary-btn">Se connecter avec Google</button>
       <button id="toggleBtn">Démarrer</button>
 
       <section class="card">
@@ -44,6 +45,8 @@
       </section>
     </main>
 
+    <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore-compat.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
