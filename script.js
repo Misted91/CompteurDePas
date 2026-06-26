@@ -244,9 +244,16 @@ async function signInWithGoogle() {
   if (!auth) return;
 
   const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+
   try {
-    await auth.signInWithPopup(provider);
-    updateSyncStatus('Connexion Google réussie');
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      await auth.signInWithRedirect(provider);
+      updateSyncStatus('Redirection Google…');
+    } else {
+      await auth.signInWithPopup(provider);
+      updateSyncStatus('Connexion Google réussie');
+    }
   } catch (error) {
     console.error('Erreur de connexion Google :', error);
     updateSyncStatus('Connexion Google annulée ou impossible');
