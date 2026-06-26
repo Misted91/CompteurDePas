@@ -49,7 +49,12 @@ function initFirebase() {
   }
 
   if (typeof window.firebase === 'undefined') {
-    updateSyncStatus('Chargement Firebase impossible');
+    updateSyncStatus('Mode local actif');
+    window.setTimeout(() => {
+      if (!auth) {
+        updateSyncStatus('Mode local actif');
+      }
+    }, 1000);
     return;
   }
 
@@ -85,7 +90,7 @@ function initFirebase() {
     });
   } catch (error) {
     console.error('Erreur d\'initialisation Firebase :', error);
-    updateSyncStatus(`Firebase non disponible : ${error.message || 'vérifie la configuration'}`);
+    updateSyncStatus('Mode local actif');
   }
 }
 
@@ -266,7 +271,7 @@ function stopListening() {
 
 async function signInWithGoogle() {
   if (!auth) {
-    updateSyncStatus('Firebase non initialisé');
+    updateSyncStatus('Connexion Google indisponible actuellement');
     return;
   }
 
@@ -299,11 +304,6 @@ async function signOut() {
 }
 
 toggleBtn.addEventListener('click', () => {
-  if (!currentUser) {
-    updateStatus('Connecte-toi d’abord');
-    return;
-  }
-
   if (isActive) {
     stopListening();
   } else {
