@@ -49,9 +49,10 @@ function initFirebase() {
     return;
   }
 
+  const host = window.location.hostname || 'compteurdepas.firebaseapp.com';
   const firebaseConfig = {
     apiKey: 'AIzaSyC4fgeIfoIcf-jo6tJfLdQfAIN7QIdzzis',
-    authDomain: 'compteurdepas.firebaseapp.com',
+    authDomain: host === 'localhost' ? 'compteurdepas.firebaseapp.com' : host,
     projectId: 'compteurdepas',
     storageBucket: 'compteurdepas.firebasestorage.app',
     messagingSenderId: '904521867297',
@@ -77,7 +78,7 @@ function initFirebase() {
     });
   } catch (error) {
     console.error('Erreur d\'initialisation Firebase :', error);
-    updateSyncStatus('Firebase non disponible');
+    updateSyncStatus(`Firebase non disponible : ${error.message || 'vérifie la configuration'}`);
   }
 }
 
@@ -262,13 +263,8 @@ async function signInWithGoogle() {
   provider.setCustomParameters({ prompt: 'select_account' });
 
   try {
-    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      await auth.signInWithRedirect(provider);
-      updateSyncStatus('Redirection Google…');
-    } else {
-      await auth.signInWithPopup(provider);
-      updateSyncStatus('Connexion Google réussie');
-    }
+    await auth.signInWithRedirect(provider);
+    updateSyncStatus('Redirection Google…');
   } catch (error) {
     console.error('Erreur de connexion Google :', error);
     updateSyncStatus('Connexion Google annulée ou impossible');
