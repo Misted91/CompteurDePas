@@ -51,12 +51,18 @@ function initFirebase() {
 
   const firebaseConfig = {
     apiKey: 'AIzaSyC4fgeIfoIcf-jo6tJfLdQfAIN7QIdzzis',
-    authDomain: 'compteurdepas.firebaseapp.com',
+    authDomain: 'compteurdepas.firebaseapp.com', // Fixe et identique partout !
     projectId: 'compteurdepas',
     storageBucket: 'compteurdepas.firebasestorage.app',
     messagingSenderId: '904521867297',
     appId: '1:904521867297:web:d3fd5626bdafa4d8bb0360'
   };
+
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    // ... reste du code identique
+
 
   try {
     firebase.initializeApp(firebaseConfig);
