@@ -77,6 +77,17 @@ function initFirebase() {
     auth = firebase.auth();
     updateSyncStatus('Connexion Firebase…');
 
+    auth.getRedirectResult()
+      .then((result) => {
+        if (result && result.user) {
+          updateSyncStatus('Connexion finalisée avec succès !');
+        }
+      })
+      .catch((error) => {
+        console.error('Erreur de retour de redirection :', error);
+        updateSyncStatus("Erreur d'authentification par redirection");
+      });
+
     auth.onAuthStateChanged((user) => {
       currentUser = user;
       if (user) {
@@ -330,8 +341,8 @@ async function signInWithGoogle() {
   provider.setCustomParameters({ prompt: 'select_account' });
 
   try {
-    await auth.signInWithRedirect(provider);
-    updateSyncStatus('Redirection Google…');
+    await auth.signInWithPopup(provider);
+    updateSyncStatus('Connexion réussie !');
   } catch (error) {
     console.error('Erreur de connexion Google :', error);
     updateSyncStatus('Connexion Google annulée ou impossible');
