@@ -10,6 +10,7 @@ let db = null;
 let auth = null;
 let userId = null;
 let currentUser = null;
+let useLocalFallback = false;
 
 const toggleBtn = document.getElementById('toggleBtn');
 const authBtn = document.getElementById('authBtn');
@@ -81,6 +82,7 @@ function initFirebase() {
       if (user) {
         userId = user.uid;
         updateAuthButton();
+        updateSyncStatus('Utilisateur connecté');
         loadUserSteps();
       } else {
         userId = null;
@@ -104,8 +106,37 @@ function updateAuthButton() {
   }
 }
 
+function saveStepsLocally() {
+  if (!userId) {
+    localStorage.setItem('stepsFallback', String(stepCount));
+  } else {
+    localStorage.setItem(`stepsFallback-${userId}`, String(stepCount));
+  }
+}
+
+function loadStepsLocally() {
+  const key = userId ? `stepsFallback-${userId}` : 'stepsFallback';
+  const stored = localStorage.getItem(key);
+  if (stored !== null) {
+    stepCount = Number(stored) || 0;
+    if (stepCountEl) {
+      stepCountEl.textContent = stepCount;
+    }
+  }
+}
+
 async function loadUserSteps() {
-  if (!db || !userId) return;
+  if (!userId) {
+    loadStepsLocally();
+    return;
+  }
+
+  if (!db) {
+    loadStepsLocally();
+    useLocalFallback = true;
+    updateSyncStatus('Sauvegarde locale active');
+    return;
+  }
 
   try {
     const snapshot = await db.collection('users').doc(userId).get();
@@ -114,22 +145,35 @@ async function loadUserSteps() {
       if (stepCountEl) {
         stepCountEl.textContent = stepCount;
       }
+      saveStepsLocally();
       updateSyncStatus('Compteur chargé');
+      useLocalFallback = false;
     } else {
       stepCount = 0;
       if (stepCountEl) {
         stepCountEl.textContent = stepCount;
       }
+      saveStepsLocally();
       updateSyncStatus('Compteur prêt');
+      useLocalFallback = false;
     }
   } catch (error) {
     console.error('Erreur de lecture Firebase :', error);
-    updateSyncStatus('Chargement impossible');
+    loadStepsLocally();
+    useLocalFallback = true;
+    updateSyncStatus('Sauvegarde locale active');
   }
 }
 
 async function saveStepCount() {
-  if (!db || !userId) return;
+  saveStepsLocally();
+
+  if (!db || !userId) {
+    if (!useLocalFallback) {
+      updateSyncStatus('Sauvegarde locale active');
+    }
+    return;
+  }
 
   try {
     await db.collection('users').doc(userId).set({
@@ -138,9 +182,11 @@ async function saveStepCount() {
     }, { merge: true });
 
     updateSyncStatus('Pas enregistrés');
+    useLocalFallback = false;
   } catch (error) {
     console.error('Erreur d\'enregistrement Firebase :', error);
-    updateSyncStatus('Échec d’enregistrement');
+    useLocalFallback = true;
+    updateSyncStatus('Sauvegarde locale active');
   }
 }
 
