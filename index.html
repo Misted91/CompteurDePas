@@ -3,13 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Compteur de pas" />
     <title>Détection de pas</title>
+    <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <main class="app">
       <h1>Détection de pas</h1>
-      <p class="subtitle">Utilise l’accéléromètre et le gyroscope du téléphone.</p>
+      <p class="subtitle">Utilise l'accéléromètre et le gyroscope du téléphone.</p>
       <p id="syncStatus" class="sync-status">Initialisation…</p>
       <button id="authBtn" class="secondary-btn">Se connecter avec Google</button>
       <button id="toggleBtn">Démarrer</button>
@@ -49,5 +54,12 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore-compat.js"></script>
     <script src="script.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>
