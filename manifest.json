@@ -4,6 +4,8 @@
   "description": "Compteur de pas avec détection de mouvement et connexion Google",
   "start_url": "./index.html",
   "display": "standalone",
+  "scope": "./",
+  "id": "./",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
   "orientation": "portrait",
